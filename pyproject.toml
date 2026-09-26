@@ -1,0 +1,28 @@
+[build-system]
+requires = ["scikit-build-core>=0.10", "pybind11>=2.11"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "field2pt"
+version = "0.1.0"
+authors = [{ name = "Satoshi Tanaka" }]
+
+description = "Two-point statistics of gridded fields with FFTW and OpenMP"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["numpy", "mass-assignment>=1.1"]
+license = "GPL-2.0-or-later"
+license-files = ["LICENSE"]
+
+
+[tool.scikit-build]
+wheel.packages = ["field2pt"]
+
+[tool.scikit-build.sdist]
+exclude = ["tests/**", "benchmarks/**"]
+
+
+[project.urls]
+Homepage = "https://github.com/stanaka2/field2pt"
+Repository = "https://github.com/stanaka2/field2pt"
+Issues = "https://github.com/stanaka2/field2pt/issues"
