@@ -38,14 +38,14 @@ def _normalize_nmesh(nmesh):
 def _normalize_lbox(lbox):
     if np.ndim(lbox) == 0:
         L = float(lbox)
-        if L <= 0.0:
-            raise ValueError("lbox must be positive")
+        if not np.isfinite(L) or L <= 0.0:
+            raise ValueError("lbox must be positive and finite")
         return (L, L, L)
     if len(lbox) != 3:
         raise ValueError("lbox must be a scalar or length-3 sequence")
     out = tuple(float(x) for x in lbox)
-    if any(x <= 0.0 for x in out):
-        raise ValueError("all lbox elements must be positive")
+    if any(not np.isfinite(x) or x <= 0.0 for x in out):
+        raise ValueError("all lbox elements must be positive and finite")
     return out
 
 
@@ -137,8 +137,8 @@ def _resolve_shotnoise(shotnoise, npart, weights, lbox):
 
     if npart is not None:
         n = float(npart)
-        if n <= 0.0:
-            raise ValueError("npart must be positive")
+        if not np.isfinite(n) or n <= 0.0:
+            raise ValueError("npart must be positive and finite")
         return volume / n
 
     if weights is not None:
@@ -151,13 +151,20 @@ def _resolve_shotnoise(shotnoise, npart, weights, lbox):
         total, total2 = 0.0, 0.0
         for i in range(0, w.size, 1 << 20):
             c = np.asarray(w[i : i + (1 << 20)], dtype=np.float64)
+            if not np.isfinite(c).all():
+                raise ValueError("weights must be finite")
             total += float(c.sum())
             total2 += float(np.dot(c, c))
         if total <= 0.0:
             raise ValueError("the total weight must be positive")
         return volume * total2 / (total * total)
 
-    return None if shotnoise is None else float(shotnoise)
+    if shotnoise is None:
+        return None
+    value = float(shotnoise)
+    if not np.isfinite(value):
+        raise ValueError("shotnoise must be finite")
+    return value
 
 
 def _subtract_shotnoise(power, ells, value):
@@ -172,7 +179,10 @@ def _subtract_shotnoise(power, ells, value):
 def _normalize_bin_range(bin_range):
     if np.ndim(bin_range) != 1 or len(bin_range) != 2:
         raise ValueError("range must be [lower, upper]")
-    return float(bin_range[0]), float(bin_range[1])
+    out = float(bin_range[0]), float(bin_range[1])
+    if not np.isfinite(out).all():
+        raise ValueError("range endpoints must be finite")
+    return out
 
 
 # the default range of k: from the fundamental mode to the smallest Nyquist of the three axes
@@ -225,6 +235,8 @@ def _normalize_bins(bins, bin_range, scale, default_count):
     e = np.asarray(bins, dtype=np.float64)
     if e.ndim != 1 or e.size < 2:
         raise ValueError("bins must be a count or a 1D array of at least two edges")
+    if not np.isfinite(e).all():
+        raise ValueError("the edges in bins must be finite")
     if np.any(np.diff(e) <= 0):
         raise ValueError("the edges in bins must be strictly increasing")
     return None, None, np.ascontiguousarray(e)
@@ -272,6 +284,12 @@ def _from_grid(grid, shape):
     bc = getattr(grid, "bc", None)
     if bc is not None:
         _check_periodic(bc)
+    bounds = getattr(grid, "bounds", None)
+    if bounds is not None:
+        bounds = np.asarray(bounds, dtype=np.float64)
+        box = np.asarray(_normalize_lbox(lbox))
+        if bounds.shape != (3, 2) or not np.allclose(bounds[:, 1] - bounds[:, 0], box, rtol=1e-12, atol=0):
+            raise ValueError("a local ROI is not a full periodic box; its window requires a separate estimator")
     return lbox, order
 
 
@@ -615,8 +633,8 @@ class Estimator:
     def smooth(self, field, radius, kind="gaussian"):
         f = self._check(field)
         r = float(radius)
-        if r <= 0.0:
-            raise ValueError("radius must be positive")
+        if not np.isfinite(r) or r <= 0.0:
+            raise ValueError("radius must be positive and finite")
         return self._backend(f).smooth(f, r, _smoothing_kind(kind))
 
     def __repr__(self):

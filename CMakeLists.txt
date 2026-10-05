@@ -30,9 +30,9 @@ endif()
 # in the installed module, so that it still loads once LD_LIBRARY_PATH no longer names it.
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 
-pybind11_add_module(_binding MODULE binding.cpp)
+pybind11_add_module(_binding MODULE src/binding.cpp)
 
-target_include_directories(_binding PRIVATE ${FFTW_INCLUDE_DIR})
+target_include_directories(_binding PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${FFTW_INCLUDE_DIR})
 target_link_libraries(_binding PRIVATE
   OpenMP::OpenMP_CXX
   ${FFTW_FLOAT_OMP_LIB} ${FFTW_FLOAT_LIB}

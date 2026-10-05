@@ -218,7 +218,8 @@ static py::array_t<T> smooth_impl(Estimator<T> &est, py::array_t<T, py::array::c
 {
   check_shape(est, f, "field");
   const Grid3D &grid = est.grid();
-  if(radius <= 0.0) throw std::runtime_error("the smoothing radius must be positive");
+  if(!std::isfinite(radius) || radius <= 0.0)
+    throw std::runtime_error("the smoothing radius must be positive and finite");
 
   py::array_t<T> out({grid.n[0], grid.n[1], grid.n[2]});
   T *optr = static_cast<T *>(out.request().ptr);

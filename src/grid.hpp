@@ -52,7 +52,7 @@ static inline Grid3D make_grid(const std::array<int, 3> &n, const std::array<dou
 {
   for(int j = 0; j < 3; j++) {
     if(n[j] <= 0) throw std::runtime_error("mesh shape must be positive");
-    if(lbox[j] <= 0.0) throw std::runtime_error("lbox must be positive");
+    if(!std::isfinite(lbox[j]) || lbox[j] <= 0.0) throw std::runtime_error("lbox must be positive and finite");
   }
 
   Grid3D grid;

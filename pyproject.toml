@@ -4,13 +4,13 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "field2pt"
-version = "0.1.0"
+version = "1.0.0"
 authors = [{ name = "Satoshi Tanaka" }]
 
 description = "Two-point statistics of gridded fields with FFTW and OpenMP"
 readme = "README.md"
 requires-python = ">=3.9"
-dependencies = ["numpy", "mass-assignment>=1.1"]
+dependencies = ["numpy", "mass-assignment>=1.2"]
 license = "GPL-2.0-or-later"
 license-files = ["LICENSE"]
 
