@@ -220,6 +220,7 @@ static py::array_t<T> smooth_impl(Estimator<T> &est, py::array_t<T, py::array::c
   const Grid3D &grid = est.grid();
   if(!std::isfinite(radius) || radius <= 0.0)
     throw std::runtime_error("the smoothing radius must be positive and finite");
+  if(kind < 0 || kind > 2) throw std::runtime_error("unknown smoothing kind");
 
   py::array_t<T> out({grid.n[0], grid.n[1], grid.n[2]});
   T *optr = static_cast<T *>(out.request().ptr);

@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "field2pt"
-version = "1.0.0"
+version = "1.1.0"
 authors = [{ name = "Satoshi Tanaka" }]
 
 description = "Two-point statistics of gridded fields with FFTW and OpenMP"

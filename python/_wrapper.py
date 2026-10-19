@@ -811,9 +811,9 @@ _METHOD_NAME = {0: "none", 1: "NGP", 2: "CIC", 3: "TSC", 4: "PCS"}
 
 
 def _smoothing_kind(kind):
-    kinds = {"gaussian": 0, "tophat": 1, "top-hat": 1, "top_hat": 1}
+    kinds = {"gaussian": 0, "tophat": 1, "top-hat": 1, "top_hat": 1, "boxcar": 2}
     if not isinstance(kind, str) or kind.strip().lower() not in kinds:
-        raise ValueError("kind must be 'gaussian' or 'tophat'")
+        raise ValueError("kind must be 'gaussian', 'tophat', or 'boxcar'")
     return kinds[kind.strip().lower()]
 
 
@@ -983,7 +983,12 @@ def correlation_function(
 
 
 def smooth(field, lbox=None, radius=None, kind="gaussian", grid=None, nthreads=None):
-    """Smooth a field with a Gaussian or top-hat window, leaving the assignment window in."""
+    """Filter a periodic field, leaving the assignment window in.
+
+    radius is the Gaussian standard deviation, spherical top-hat radius, or
+    boxcar half-width along each axis, in the same physical units as lbox.
+    Boxcar uses the continuous Fourier window, not an integer-cell moving average.
+    """
     if radius is None:
         raise TypeError("radius is required")
     f, est = _one_shot_window(field, lbox, grid, nthreads)

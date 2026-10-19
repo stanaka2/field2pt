@@ -120,8 +120,27 @@ marked = f2.marked_field(
 )
 ```
 
-Smoothing supports Gaussian and top-hat windows. Both operations preserve the
-input dtype.
+Smoothing supports three windows and preserves the input dtype. `radius` is
+in the same physical units as `lbox`:
+
+| `kind` | Meaning of `radius` | Fourier window |
+| --- | --- | --- |
+| `"gaussian"` (default) | Standard deviation R | exp(-k²R²/2) |
+| `"tophat"` | Spherical radius R | 3[sin(kR)-kR cos(kR)]/(kR)³ |
+| `"boxcar"` | Half-width R; full width 2R along each axis | Product of sin(kᵢR)/(kᵢR) |
+
+The boxcar is an axis-aligned cube, distinct from the spherical top-hat. These
+are continuous Fourier windows, not integer-cell moving averages. Smoothing
+preserves the DC mode and leaves the assignment window in place. All fields
+are periodic; no edge padding or open-boundary filtering is performed.
+
+For density-weighted velocity, filter mass and momentum with the same window
+before division. These fields may come from saved meshes or particle assignment;
+no new `mass_assignment` API is required. Analytic backgrounds belong to the
+caller and must be included before division. An additional filter on the
+resulting velocity is a distinct operation. Smoothing and a power measurement
+with `method="none"` retain the assignment window; no shot noise is subtracted
+by default.
 
 ## Grid metadata
 

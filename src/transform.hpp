@@ -86,8 +86,14 @@ static void divergence_add(std::complex<T> *acc, const std::complex<T> *d, const
   } // ix,iy,iz
 }
 
-// Multiplies the field by a smoothing window, Gaussian exp(-k^2 R^2 / 2) for kind 0 or top hat
-// 3 [sin(kR) - kR cos(kR)] / (kR)^3 for kind 1, taken per mode.
+static inline double boxcar_axis_window(const double x)
+{
+  return x == 0.0 ? 1.0 : std::sin(x) / x;
+}
+
+// Kind 0: Gaussian exp(-k^2 R^2 / 2). Kind 1: spherical top-hat
+// 3 [sin(kR) - kR cos(kR)] / (kR)^3. Kind 2: boxcar prod_i sinc(k_i R),
+// with full width 2R along each coordinate axis.
 template <typename T>
 static void smooth_spectrum(std::complex<T> *d, const Grid3D &grid, const double radius, const int kind,
                             const int nthreads)
@@ -121,9 +127,11 @@ static void smooth_spectrum(std::complex<T> *d, const Grid3D &grid, const double
         double w;
         if(kind == 0) {
           w = std::exp(-0.5 * x * x);
-        } else {
+        } else if(kind == 1) {
           // the series limit avoids the 0/0 at k = 0 and the cancellation just above it
           w = (x < 1e-4) ? (1.0 - 0.1 * x * x) : 3.0 * (std::sin(x) - x * std::cos(x)) / (x * x * x);
+        } else {
+          w = boxcar_axis_window(kx * radius) * boxcar_axis_window(ky * radius) * boxcar_axis_window(kz * radius);
         }
 
         const int64_t idx = base + iz;
